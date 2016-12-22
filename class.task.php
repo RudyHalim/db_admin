@@ -119,6 +119,7 @@ class Task
 		$this->doDumpTable();
 
 		// transfer the dump file to the backup server
+		$this->moveDumpToBackupServer();
 
 		// import the dump files to backup database server
 
@@ -164,6 +165,17 @@ class Task
 			$this->doDeleteTable($this->new_master_table_name);
 		} else {
 			echo "Either dump process is fail or dump file is not bigger than zero bytes.".PHP_EOL;
+		}
+	}
+
+	function moveDumpToBackupServer()
+	{
+		if(file_exists($this->dump_file_name)) {
+			$oldname = $this->dump_file_name;
+			$newname = $this->config['server']['backup_dump_to_path'].$this->dump_file_name;
+
+			$move = rename($oldname, $newname);
+			echo "Move $oldname to $newname - ".$move.PHP_EOL;
 		}
 	}
 }
