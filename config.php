@@ -6,6 +6,9 @@ $config = array(
 		, 'pass' => ''
 		, 'dbname' => 'test'
 	),
+	'server' => array(
+		'backup_dump_to_path' => 'newfolder/'
+	),
 	'table' => array (
 		'0' => array(
 			'table_name' => 'longtable'

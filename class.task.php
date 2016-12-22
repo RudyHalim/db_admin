@@ -45,7 +45,7 @@ class Task
 	function resetMainTable()
 	{
 		// first we need to drop the existing table for testing purpose
-		$this->dropMainTable();
+		$this->doDeleteTable($this->tabledata['table_name']);
 
 		// create again the table structure with new indexing key
 		$this->createMainTable();
@@ -54,9 +54,9 @@ class Task
 		$this->addBulkRows();
 	}
 
-	function dropMainTable()
+	function doDeleteTable($tablename)
 	{
-		$q = "DROP TABLE IF EXISTS ".$this->tabledata['table_name'].";";
+		$q = "DROP TABLE IF EXISTS ".$tablename.";";
 		$sql = $this->db->query($q) or die($this->db->error);
 		
 		echo $this->singleline($q)." - OK".PHP_EOL;
@@ -155,7 +155,15 @@ class Task
 	{
 		$command = "mysqldump -u ".$this->config['database']['user']." -p".$this->config['database']['pass']." ".$this->config['database']['dbname']." ".$this->new_master_table_name." > ".$this->dump_file_name;
 		system($command, $return);
+		$status = $return == '0' ? true : false;
 
-		echo $this->singleline($command)." - ".($return == '0' ? "OK" : "Return Code Error: ".$return).PHP_EOL;
+		echo $this->singleline($command)." - ".($status ? "OK" : "Return Code Error: ".$return).PHP_EOL;
+
+		// if successfully dump table, and file size bigger than zero, then delete the old table
+		if($status &&  filesize($this->dump_file_name) > 0) {
+			$this->doDeleteTable($this->new_master_table_name);
+		} else {
+			echo "Either dump process is fail or dump file is not bigger than zero bytes.".PHP_EOL;
+		}
 	}
 }
