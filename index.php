@@ -22,7 +22,7 @@ foreach ($config['table'] as $key => $tabledata) {
 	$task = new Task($db, $tabledata);
 
 	// clean and re-insert the situation
-	$task->resetMainTable();
+	// $task->resetMainTable();
 
 	// create the new master table
 	$task->generateNewMasterTable();
