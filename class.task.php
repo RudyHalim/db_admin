@@ -3,17 +3,43 @@ class Task
 {
 	private $db;
 	private $tabledata;
+	private $config;
 
 	private $master_table_name;
 	private $new_master_table_name;
+	private $dump_file_name;
 
-	function __construct($db, $tabledata)
+	function __construct($config)
 	{
-		$this->db 						= $db;
+		$this->config = $config;
+
+		// trying to connect to db
+		$this->connectDb();
+	}
+
+	function connectDb()
+	{
+		// connect to the database
+		$db = new mysqli($this->config['database']['server']
+					, $this->config['database']['user']
+					, $this->config['database']['pass']
+					, $this->config['database']['dbname']);
+
+		if ($db->connect_errno > 0) {
+			die('Unable to connect to database ['.$db->connect_error.']');
+		}
+
+		// successful connect db
+		$this->db = $db;
+	}
+
+	function prepareTable($tabledata)
+	{
 		$this->tabledata 				= $tabledata;
 
 		$this->master_table_name 		= $this->tabledata['table_name'];
 		$this->new_master_table_name 	= $this->tabledata['table_name'].date("_Y_m_d_").(microtime()*1000000);
+		$this->dump_file_name 			= $this->new_master_table_name.".sql";
 	}
 
 	function resetMainTable()
@@ -90,6 +116,7 @@ class Task
 		$this->insertHDaysToNewMasterTable();
 
 		// dump the backup table using mysqldump
+		$this->doDumpTable();
 
 		// transfer the dump file to the backup server
 
@@ -122,5 +149,13 @@ class Task
 		$sql = $this->db->query($q) or die($this->db->error);
 		
 		echo $this->singleline($q)." - OK".PHP_EOL;
+	}
+
+	function doDumpTable()
+	{
+		$command = "mysqldump -u ".$this->config['database']['user']." -p".$this->config['database']['pass']." ".$this->config['database']['dbname']." ".$this->new_master_table_name." > ".$this->dump_file_name;
+		system($command, $return);
+
+		echo $this->singleline($command)." - ".($return == '0' ? "OK" : "Return Code Error: ".$return).PHP_EOL;
 	}
 }

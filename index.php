@@ -4,24 +4,18 @@
 include('config.php');
 include('class.task.php');
 
-// connect to the database
-$db = new mysqli($config['database']['server']
-		, $config['database']['user']
-		, $config['database']['pass']
-		, $config['database']['dbname']);
 
-if ($db->connect_errno > 0) {
-	die('Unable to connect to database ['.$db->connect_error.']');
-}
 
+// assign new task for each table data
+$task = new Task($config);
 
 // do the looping for the config table list
 foreach ($config['table'] as $key => $tabledata) {
 
-	// assign new task for each table data
-	$task = new Task($db, $tabledata);
+	// loading the information first
+	$task->prepareTable($tabledata);
 
-	// clean and re-insert the situation
+	// enable only for localhost testing
 	// $task->resetMainTable();
 
 	// create the new master table
