@@ -9,6 +9,8 @@ class Task
 	private $new_master_table_name;
 	private $dump_file_name;
 
+	private $temp_file = 'temp_auto.json';
+
 	function __construct($config)
 	{
 		$this->config = $config;
@@ -33,13 +35,29 @@ class Task
 		$this->db = $db;
 	}
 
+	function isValidTempFile()
+	{
+		return (file_exists($this->temp_file) && filesize($this->temp_file) > 2);
+	}
+
 	function prepareTable($tabledata)
 	{
-		$this->tabledata 				= $tabledata;
+		// read from temp json file if file exists
+		if($this->isValidTempFile()) {
+			$tabledata = json_decode(file_get_contents($this->temp_file), true);
+		} 
 
+		// assign the parameter
+		$this->tabledata 				= $tabledata;
 		$this->master_table_name 		= $this->tabledata['table_name'];
 		$this->new_master_table_name 	= $this->tabledata['table_name'].date("_Y_m_d_").(microtime()*1000000);
 		$this->dump_file_name 			= $this->new_master_table_name.".sql";
+
+		// write the temp file if file not exists
+		if(!$this->isValidTempFile()) {
+			$create_file = file_put_contents($this->temp_file, json_encode(get_object_vars($this)) ) or die("Failed to write temp file.");
+			echo "Created temporary parameter file ".$this->temp_file." with ".filesize($this->temp_file)." bytes.".PHP_EOL;
+		}
 	}
 
 	function resetMainTable()

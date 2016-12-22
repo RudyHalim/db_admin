@@ -19,6 +19,6 @@ foreach ($config['table'] as $key => $tabledata) {
 	// $task->resetMainTable();
 
 	// create the new master table
-	$task->generateNewMasterTable();
+	// $task->generateNewMasterTable();
 }
 
